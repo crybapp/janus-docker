@@ -1,0 +1,6 @@
+*
+!*.example
+!Dockerfile
+!.gitignore
+!/**/
+!config/*.example
