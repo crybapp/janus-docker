@@ -38,13 +38,15 @@ RUN apt-get purge -y libnice-dev && \
     make && \
     make install && \
     cd ../ && \
-    rm -r libnice
+    rm -rf libnice
 
 RUN wget https://github.com/cisco/libsrtp/archive/v1.5.4.tar.gz && \
     tar xfv v1.5.4.tar.gz && \
     cd libsrtp-1.5.4 && \
     ./configure --prefix=/usr --enable-openssl && \
-    make shared_library && make install && \
+    make shared_library &&
+    make install && \
+    cd ../ && \
     rm -rf v1.5.4.tar.gz && \
     rm -rf libsrtp-1.5.4
 
@@ -54,6 +56,7 @@ RUN git clone https://github.com/meetecho/janus-gateway.git && \
     ./configure --disable-all-plugins --disable-all-handlers --enable-rest --enable-plugin-streaming --disable-unix-sockets --disable-libsrtp-2 && \
     make && \
     make install && \
+    cd ../ && \
     rm -rf janus-gateway 
 
 COPY configs/janus.jcfg configs/janus.plugin.streaming.jcfg configs/janus.transport.http.jcfg /usr/local/etc/janus/
