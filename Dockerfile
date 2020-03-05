@@ -4,22 +4,22 @@ RUN apk --no-cache upgrade && apk add --no-cache \
     git \
     wget \
     gtk-doc \
-	glib \
+    glib \
     libmicrohttpd-dev \
     jansson-dev \
     openssl-dev \
     curl-dev \
     libconfig-dev \
     libffi-dev \
-	libsrtp-dev \
+    libsrtp-dev \
     gettext \
     pkgconfig \
     gengetopt \
     libtool \ 
     make \
     automake \
-	autoconf \
-	alpine-sdk
+    autoconf \
+    alpine-sdk
 
 RUN apk del --no-cache libnice-dev && \
     git clone https://gitlab.freedesktop.org/libnice/libnice && \
