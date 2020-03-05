@@ -1,36 +1,27 @@
-FROM ubuntu:16.04
+FROM alpine:edge
 
-RUN apt-get update && apt-get install -y \
+RUN apk --no-cache upgrade && apk add --no-cache \
     git \
     wget \
-    gtk-doc-tools \
+    gtk-doc \
+	glib \
     libmicrohttpd-dev \
-    libjansson-dev \
-    libssl-dev \
-    libglib2.0-dev \
-    libcurl4-openssl-dev \
+    jansson-dev \
+    openssl-dev \
+    curl-dev \
     libconfig-dev \
     libffi-dev \
-    libmount-dev \
+	libsrtp-dev \
     gettext \
-    pkg-config \
+    pkgconfig \
     gengetopt \
     libtool \ 
     make \
-    automake
+    automake \
+	autoconf \
+	alpine-sdk
 
-RUN wget https://github.com/GNOME/glib/archive/2.54.3.tar.gz && \
-    tar xfv 2.54.3.tar.gz && \
-    cd glib-2.54.3 && \
-    ./autogen.sh && \
-    ./configure && \
-    make && \
-    make install && \
-    cd ../ && \
-    rm -rf 2.54.3.tar.gz && \
-    rm -rf glib-2.54.3
-
-RUN apt-get purge -y libnice-dev && \
+RUN apk del --no-cache libnice-dev && \
     git clone https://gitlab.freedesktop.org/libnice/libnice && \
     cd libnice && \
     ./autogen.sh --disable-dependency-tracking && \
@@ -39,16 +30,6 @@ RUN apt-get purge -y libnice-dev && \
     make install && \
     cd ../ && \
     rm -rf libnice
-
-RUN wget https://github.com/cisco/libsrtp/archive/v1.5.4.tar.gz && \
-    tar xfv v1.5.4.tar.gz && \
-    cd libsrtp-1.5.4 && \
-    ./configure --prefix=/usr --enable-openssl && \
-    make shared_library && \
-    make install && \
-    cd ../ && \
-    rm -rf v1.5.4.tar.gz && \
-    rm -rf libsrtp-1.5.4
 
 RUN git clone https://github.com/meetecho/janus-gateway.git && \
     cd janus-gateway && \
@@ -60,5 +41,7 @@ RUN git clone https://github.com/meetecho/janus-gateway.git && \
     rm -rf janus-gateway 
 
 COPY configs/janus.jcfg configs/janus.plugin.streaming.jcfg configs/janus.transport.http.jcfg /usr/local/etc/janus/
+
+EXPOSE 8088
 
 ENTRYPOINT [ "janus" ]
