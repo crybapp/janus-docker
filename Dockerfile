@@ -52,6 +52,7 @@ RUN wget https://github.com/cisco/libsrtp/archive/v1.5.4.tar.gz && \
 
 RUN git clone https://github.com/meetecho/janus-gateway.git && \
     cd janus-gateway && \
+    git reset d35c7265fdcc67d849cb9724868a3788c9365af2 --hard && \
     sh autogen.sh --disable-libsrtp-2 && \
     ./configure --disable-all-plugins --disable-all-handlers --enable-rest --enable-plugin-streaming --disable-unix-sockets --disable-libsrtp-2 && \
     make && \
