@@ -33,6 +33,7 @@ RUN wget https://github.com/GNOME/glib/archive/2.54.3.tar.gz && \
 RUN apt-get purge -y libnice-dev && \
     git clone https://gitlab.freedesktop.org/libnice/libnice && \
     cd libnice && \
+    git checkout 7581462a40e4e28d73d8e575336969a2f16a11b5 && \
     ./autogen.sh --disable-dependency-tracking && \
     ./configure --disable-dependency-tracking --prefix=/usr  && \
     make && \
