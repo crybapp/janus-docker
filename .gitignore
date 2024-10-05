@@ -1,6 +1,6 @@
 *
-!*.example
-!Dockerfile
+!.dockerignore
 !.gitignore
-!/**/
-!config/*.example
+!build.sh
+!Dockerfile
+!configs/*.example

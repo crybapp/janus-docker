@@ -1,66 +1,56 @@
-FROM ubuntu:16.04
+FROM debian:bookworm-slim AS builder
+WORKDIR /build
 
 RUN apt-get update && apt-get install -y \
-    git \
-    wget \
-    gtk-doc-tools \
-    libmicrohttpd-dev \
-    libjansson-dev \
-    libssl-dev \
-    libglib2.0-dev \
-    libcurl4-openssl-dev \
-    libconfig-dev \
-    libffi-dev \
-    libmount-dev \
-    gettext \
-    pkg-config \
-    gengetopt \
-    libtool \ 
-    make \
-    automake
+	git \
+	make \
+	automake \
+	pkg-config \
+	libconfig-dev \
+	libcurl4-openssl-dev \
+	libglib2.0-dev \
+	libjansson-dev \
+	liblua5.3-dev \
+	libmicrohttpd-dev \
+	libnice-dev \
+	libopus-dev \
+	libogg-dev \
+	libssl-dev \
+	libsrtp2-dev \
+	libsofia-sip-ua-dev \
+	libtool \
+	meson
 
-RUN wget https://github.com/GNOME/glib/archive/2.54.3.tar.gz && \
-    tar xfv 2.54.3.tar.gz && \
-    cd glib-2.54.3 && \
-    ./autogen.sh && \
-    ./configure && \
-    make && \
-    make install && \
-    cd ../ && \
-    rm -rf 2.54.3.tar.gz && \
-    rm -rf glib-2.54.3
+RUN git clone https://github.com/meetecho/janus-gateway.git \
+	&& cd janus-gateway \
+	&& git checkout v1.2.4 \
+	&& sh autogen.sh \
+	&& ./configure \
+		--enable-dependency-tracking \
+		--enable-libsrtp2 \
+		--disable-all-plugins \
+		--disable-all-handlers \
+		--enable-rest \
+		--enable-plugin-streaming \
+		--disable-unix-sockets \
+		--prefix=/opt/janus \
+	&& make -j$(grep ^cpu\\scores /proc/cpuinfo | uniq | awk '{print $4}') \
+	&& make install
 
-RUN apt-get purge -y libnice-dev && \
-    git clone https://gitlab.freedesktop.org/libnice/libnice && \
-    cd libnice && \
-    git checkout 7581462a40e4e28d73d8e575336969a2f16a11b5 && \
-    ./autogen.sh --disable-dependency-tracking && \
-    ./configure --disable-dependency-tracking --prefix=/usr  && \
-    make && \
-    make install && \
-    cd ../ && \
-    rm -rf libnice
+FROM debian:bookworm-slim
 
-RUN wget https://github.com/cisco/libsrtp/archive/v1.5.4.tar.gz && \
-    tar xfv v1.5.4.tar.gz && \
-    cd libsrtp-1.5.4 && \
-    ./configure --prefix=/usr --enable-openssl && \
-    make shared_library && \
-    make install && \
-    cd ../ && \
-    rm -rf v1.5.4.tar.gz && \
-    rm -rf libsrtp-1.5.4
+RUN apt-get update && apt-get install -y \
+	libconfig9 \
+	libcurl4 \
+	libjansson4 \
+	libmicrohttpd12 \
+	libnice10 \
+	libssl3 \
+	libsrtp2-1 \
+	libogg0 \
+	&& rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-RUN git clone https://github.com/meetecho/janus-gateway.git && \
-    cd janus-gateway && \
-    git reset d35c7265fdcc67d849cb9724868a3788c9365af2 --hard && \
-    sh autogen.sh --disable-libsrtp-2 && \
-    ./configure --disable-all-plugins --disable-all-handlers --enable-rest --enable-plugin-streaming --disable-unix-sockets --disable-libsrtp-2 && \
-    make && \
-    make install && \
-    cd ../ && \
-    rm -rf janus-gateway 
+COPY --from=builder /opt/janus /opt/janus
+COPY configs/janus.jcfg configs/janus.plugin.streaming.jcfg configs/janus.transport.http.jcfg /opt/janus/etc/janus/
 
-COPY configs/janus.jcfg configs/janus.plugin.streaming.jcfg configs/janus.transport.http.jcfg /usr/local/etc/janus/
-
-ENTRYPOINT [ "janus" ]
+ENTRYPOINT [ "/opt/janus/bin/janus" ]
